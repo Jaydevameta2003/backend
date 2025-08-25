@@ -6,13 +6,24 @@ from langdetect import detect
 import spacy
 from textstat import flesch_reading_ease
 from nrclex import NRCLex
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Cohere API key (replace with your own)
-co = cohere.Client('RpA11TuVr7Glm5CzBTMZeXv6Zn6wzK0R5QhzxxQc')  
-nlp = spacy.load("en_core_web_sm")  # Load spaCy model for NER
+# Get Cohere API key from environment variable
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+if not COHERE_API_KEY:
+    raise ValueError("❌ Missing COHERE_API_KEY environment variable")
+co = cohere.Client(COHERE_API_KEY)
+
+# Load spaCy safely
+try:
+    nlp = spacy.load("en_core_web_sm")
+except:
+    import subprocess
+    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+    nlp = spacy.load("en_core_web_sm")
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -27,24 +38,24 @@ def analyze():
     summary_response = co.generate(model='command', prompt=prompt, max_tokens=200)
     summary = summary_response.generations[0].text.strip()
 
-    # 2. Sentiment Analysis (using TextBlob)
+    # 2. Sentiment Analysis
     blob = TextBlob(summary)
     polarity = blob.sentiment.polarity
     subjectivity = blob.sentiment.subjectivity
 
-    # 3. Keyword Extraction (naive method using noun phrases from TextBlob)
+    # 3. Keyword Extraction
     keywords = list(set(blob.noun_phrases))
 
-    # 4. Named Entity Recognition (NER using spaCy)
+    # 4. Named Entity Recognition
     doc = nlp(user_text)
     entities = list(set((ent.text, ent.label_) for ent in doc.ents))
 
-    # 5. Emotion Detection using NRC Lex
+    # 5. Emotion Detection
     emotion_obj = NRCLex(user_text)
     emotions = emotion_obj.raw_emotion_scores
     dominant_emotion = max(emotions, key=emotions.get) if emotions else "neutral"
 
-    # 6. Language Detection (using langdetect library)
+    # 6. Language Detection
     try:
         language = detect(user_text)
     except:
@@ -53,12 +64,11 @@ def analyze():
     # 7. Word Count
     word_count = len(user_text.split())
 
-    # 8. Readability Score (using Flesch Reading Ease)
+    # 8. Readability Score
     readability_score = flesch_reading_ease(user_text)
 
-    # 9. Toxicity Detection (basic check using sentiment polarity)
-    # This could be replaced with more advanced methods like Detoxify or Perspective API
-    toxicity_score = max(0.0, -1 * polarity)  # if sentiment is negative, assume slightly toxic
+    # 9. Toxicity Detection
+    toxicity_score = max(0.0, -1 * polarity)
 
     return jsonify({
         'summary': summary,
@@ -74,4 +84,6 @@ def analyze():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # ✅ Render will use 0.0.0.0 and a dynamic port
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
