@@ -25,6 +25,11 @@ except:
     subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
     nlp = spacy.load("en_core_web_sm")
 
+# ✅ Root route to check if backend is live
+@app.route('/')
+def index():
+    return "✅ Backend is running! Use /analyze endpoint for POST requests."
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     data = request.get_json()
@@ -84,6 +89,5 @@ def analyze():
     })
 
 if __name__ == '__main__':
-    # ✅ Render will use 0.0.0.0 and a dynamic port
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
