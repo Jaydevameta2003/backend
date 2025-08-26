@@ -8,6 +8,7 @@ from textstat import flesch_reading_ease
 from nrclex import NRCLex
 from newspaper import Article
 import os
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -18,39 +19,41 @@ if not COHERE_API_KEY:
     raise ValueError("❌ Missing COHERE_API_KEY environment variable")
 co = cohere.Client(COHERE_API_KEY)
 
-# ✅ Safe spaCy model load
+# ✅ Load spaCy safely
 try:
     nlp = spacy.load("en_core_web_sm")
-except:
-    import subprocess
+except OSError:
     subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
     nlp = spacy.load("en_core_web_sm")
 
 @app.route('/')
 def index():
-    return "✅ Flask API for News Analysis is running!"
+    return jsonify({"message": "✅ Flask API for News Analysis is running!"})
 
 @app.route('/analyze_url', methods=['POST'])
 def analyze_url():
-    data = request.get_json()
-    url = data.get('url', '')
-
-    if not url:
+    data = request.get_json(silent=True)
+    if not data or 'url' not in data:
         return jsonify({'error': 'No URL provided'}), 400
 
+    url = data['url']
     try:
         # 1. Extract article
         article = Article(url)
         article.download()
         article.parse()
-        user_text = article.text
+        user_text = article.text or ""
 
         if not user_text.strip():
             return jsonify({'error': 'Failed to extract content from URL'}), 500
 
         # 2. Summarization with Cohere
-        prompt = f"Summarize the following news article: {user_text}"
-        summary_response = co.generate(model='command', prompt=prompt, max_tokens=200)
+        prompt = f"Summarize the following news article:\n\n{user_text}"
+        summary_response = co.generate(
+            model='command',
+            prompt=prompt,
+            max_tokens=200
+        )
         summary = summary_response.generations[0].text.strip()
 
         # 3. Sentiment
@@ -73,13 +76,13 @@ def analyze_url():
         # 7. Language
         try:
             language = detect(user_text)
-        except:
+        except Exception:
             language = "unknown"
 
         # 8. Stats
         word_count = len(user_text.split())
         readability_score = flesch_reading_ease(user_text)
-        toxicity_score = max(0.0, -1 * polarity)
+        toxicity_score = round(max(0.0, -1 * polarity), 2)
 
         return jsonify({
             'title': article.title,
@@ -93,7 +96,7 @@ def analyze_url():
             'language': language,
             'word_count': word_count,
             'readability_score': readability_score,
-            'toxicity_score': round(toxicity_score, 2)
+            'toxicity_score': toxicity_score
         })
 
     except Exception as e:
