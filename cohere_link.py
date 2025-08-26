@@ -15,15 +15,18 @@ app = Flask(__name__)
 CORS(app)
 
 # ✅ Ensure TextBlob dependencies are available
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+required_corpora = [
+    ("tokenizers/punkt", "punkt"),
+    ("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger"),
+    ("corpora/wordnet", "wordnet"),
+    ("corpora/omw-1.4", "omw-1.4"),
+]
 
-try:
-    nltk.data.find('taggers/averaged_perceptron_tagger')
-except LookupError:
-    nltk.download('averaged_perceptron_tagger')
+for path, name in required_corpora:
+    try:
+        nltk.data.find(path)
+    except LookupError:
+        nltk.download(name)
 
 # ✅ Use environment variable for API key (never hardcode secrets!)
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
