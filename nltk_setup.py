@@ -1,21 +1,20 @@
 import nltk
-import textblob.download_corpora as tblob
 import os
+import subprocess
 
 NLTK_DIR = "/opt/render/nltk_data"
 
 def download_all():
-    # Ensure directory exists
     os.makedirs(NLTK_DIR, exist_ok=True)
     nltk.data.path.append(NLTK_DIR)
 
-    # Download textblob corpora
-    tblob.download_corpora()
+    # Run textblob’s downloader (this is a script, not a function)
+    subprocess.run(["python", "-m", "textblob.download_corpora"], check=True)
 
     # Explicit NLTK downloads
     for pkg in [
-        "punkt", 
-        "punkt_tab",  # 👈 THIS is the missing one
+        "punkt",
+        "punkt_tab",  # 👈 required for TextBlob/NRClex
         "averaged_perceptron_tagger",
         "brown",
         "wordnet",
