@@ -8,3 +8,4 @@ cohere==5.17.0
 langdetect==1.0.9
 textstat==0.7.8
 nrclex==3.0.0
+newspaper3k==0.2.8
