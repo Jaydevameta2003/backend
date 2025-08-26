@@ -43,16 +43,16 @@ def analyze():
     summary_response = co.generate(model='command', prompt=prompt, max_tokens=200)
     summary = summary_response.generations[0].text.strip()
 
-    # 2. Sentiment Analysis
+    # 2. Sentiment Analysis (on summary for better clarity)
     blob = TextBlob(summary)
     polarity = blob.sentiment.polarity
     subjectivity = blob.sentiment.subjectivity
 
-    # 3. Keyword Extraction
-    keywords = list(set(blob.noun_phrases))
+    # 3. Keyword Extraction (✅ using spaCy, avoids NLTK corpora issues)
+    doc = nlp(user_text)
+    keywords = list(set(chunk.text for chunk in doc.noun_chunks))
 
     # 4. Named Entity Recognition
-    doc = nlp(user_text)
     entities = list(set((ent.text, ent.label_) for ent in doc.ents))
 
     # 5. Emotion Detection
@@ -72,7 +72,7 @@ def analyze():
     # 8. Readability Score
     readability_score = flesch_reading_ease(user_text)
 
-    # 9. Toxicity Detection
+    # 9. Toxicity Detection (simple inverse of polarity)
     toxicity_score = max(0.0, -1 * polarity)
 
     return jsonify({
