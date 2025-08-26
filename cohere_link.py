@@ -14,12 +14,14 @@ import nltk
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Ensure TextBlob dependencies are available
+# ✅ Ensure TextBlob + NLTK dependencies are available
 required_corpora = [
     ("tokenizers/punkt", "punkt"),
     ("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger"),
     ("corpora/wordnet", "wordnet"),
     ("corpora/omw-1.4", "omw-1.4"),
+    ("corpora/brown", "brown"),
+    ("corpora/movie_reviews", "movie_reviews"),
 ]
 
 for path, name in required_corpora:
