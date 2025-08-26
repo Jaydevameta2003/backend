@@ -17,6 +17,7 @@ CORS(app)
 # ✅ Ensure TextBlob + NLTK dependencies are available
 required_corpora = [
     ("tokenizers/punkt", "punkt"),
+    ("tokenizers/punkt_tab", "punkt_tab"),  # 🔥 NEW: Fixes your error
     ("taggers/averaged_perceptron_tagger", "averaged_perceptron_tagger"),
     ("corpora/wordnet", "wordnet"),
     ("corpora/omw-1.4", "omw-1.4"),
