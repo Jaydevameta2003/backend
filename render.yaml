@@ -1,10 +1,8 @@
 services:
   - type: web
-    name: flask-backend
+    name: backend
     env: python
-    plan: free
     buildCommand: |
       pip install -r requirements.txt
-      python -m spacy download en_core_web_sm
       python nltk_setup.py
-    startCommand: gunicorn cohere_test:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn cohere_test:app
