@@ -6,3 +6,5 @@ langdetect
 spacy
 textstat
 nrclex
+gunicorn
+nltk
