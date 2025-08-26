@@ -9,9 +9,21 @@ from nrclex import NRCLex
 from newspaper import Article
 import os
 import subprocess
+import nltk
 
 app = Flask(__name__)
 CORS(app)
+
+# ✅ Ensure TextBlob dependencies are available
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
+try:
+    nltk.data.find('taggers/averaged_perceptron_tagger')
+except LookupError:
+    nltk.download('averaged_perceptron_tagger')
 
 # ✅ Use environment variable for API key (never hardcode secrets!)
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
