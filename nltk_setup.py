@@ -1,13 +1,13 @@
 import nltk
-from textblob import download_corpora
+import textblob.download_corpora as tblob
 
 def download_all():
-    # Download default corpora needed by TextBlob
-    download_corpora()
+    # Run textblob's downloader
+    tblob.main()
 
-    # Explicitly download missing corpora
+    # Explicitly download required corpora
     nltk.download("punkt")
-    nltk.download("punkt_tab")   # NEW: Fixes your error
+    nltk.download("punkt_tab")   # NEW: fixes your error
     nltk.download("averaged_perceptron_tagger")
     nltk.download("brown")
     nltk.download("wordnet")
